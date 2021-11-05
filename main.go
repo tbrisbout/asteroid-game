@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	_ "image/png"
 	"log"
 
@@ -21,8 +22,9 @@ func init() {
 }
 
 type Game struct {
-	gopherCount int
-	x, y        int
+	gopherCount  int
+	x, y         int
+	mousePressed bool
 }
 
 func (g *Game) Update() error {
@@ -55,6 +57,13 @@ func (g *Game) Update() error {
 		return nil
 	}
 
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		g.mousePressed = true
+		return nil
+	} else {
+		g.mousePressed = false
+	}
+
 	return nil
 }
 
@@ -70,8 +79,16 @@ Press Escape to quit
 	for i := 0; i < g.gopherCount; i++ {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(float64(50*i+g.x*2), float64(g.y*2))
+
+		if g.mousePressed {
+			op.GeoM.Scale(1.5, 1)
+		}
+
 		screen.DrawImage(img, op)
 	}
+
+	mx, my := ebiten.CursorPosition()
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("cursor position: %d, %d", mx, my))
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
