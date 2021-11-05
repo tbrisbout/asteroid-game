@@ -3,6 +3,7 @@ package main
 import (
 	_ "image/png"
 	"log"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -25,6 +26,14 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Rotate(math.Pi)
+	op.GeoM.Translate(300, 250)
+	op.GeoM.Scale(1.5, 1)
+
+	// reverse fat one
+	screen.DrawImage(img, op)
+	// original
 	screen.DrawImage(img, nil)
 }
 
@@ -34,7 +43,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	ebiten.SetWindowSize(640, 480)
-	ebiten.SetWindowTitle("Hello, Image WoRlD!")
+	ebiten.SetWindowTitle("Hello, Matrix WoRlD!")
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
 	}
