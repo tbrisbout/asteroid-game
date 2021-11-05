@@ -37,29 +37,24 @@ func (g *Game) Update() error {
 		return nil
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
+	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		g.x--
-		return nil
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyRight) {
+	if ebiten.IsKeyPressed(ebiten.KeyRight) {
 		g.x++
-		return nil
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
+	if ebiten.IsKeyPressed(ebiten.KeyUp) {
 		g.y--
-		return nil
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
+	if ebiten.IsKeyPressed(ebiten.KeyDown) {
 		g.y++
-		return nil
 	}
 
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		g.mousePressed = true
-		return nil
 	} else {
 		g.mousePressed = false
 	}
