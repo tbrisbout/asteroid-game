@@ -37,19 +37,19 @@ func (g *Game) Update() error {
 		return nil
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+	if ebiten.IsKeyPressed(ebiten.KeyLeft) || ebiten.IsKeyPressed(ebiten.KeyH) {
 		g.x--
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyRight) {
+	if ebiten.IsKeyPressed(ebiten.KeyRight) || ebiten.IsKeyPressed(ebiten.KeyL) {
 		g.x++
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyUp) {
+	if ebiten.IsKeyPressed(ebiten.KeyUp) || ebiten.IsKeyPressed(ebiten.KeyK) {
 		g.y--
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyDown) {
+	if ebiten.IsKeyPressed(ebiten.KeyDown) || ebiten.IsKeyPressed(ebiten.KeyJ) {
 		g.y++
 	}
 
@@ -67,13 +67,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		ebitenutil.DebugPrint(screen, `
 Press Enter to create a Gopher
 Press Escape to quit
+Use arrows (or hjkl) to move
 `)
 		return
 	}
 
 	for i := 0; i < g.gopherCount; i++ {
 		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64(50*i+g.x*2), float64(g.y*2))
+		op.GeoM.Translate(float64(50*i+g.x*3), float64(g.y*3))
 
 		if g.mousePressed {
 			op.GeoM.Scale(1.5, 1)
