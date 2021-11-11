@@ -12,24 +12,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-var (
-	img       *ebiten.Image
-	playerImg *ebiten.Image
-
-	redColor   = color.RGBA{0xff, 0, 0, 0xff}
-	blueColor  = color.RGBA{0, 0, 0xdd, 0xff}
-	greenColor = color.RGBA{0, 0xff, 0, 0xaa}
-)
-
 const (
-	// welcomeMessage is intended to be used in DebugPrint function
-	welcomeMessage = `
-Press Enter to create a Gopher
-Press Escape to quit
-Use arrows (or hjkl) to move
-
-Press x to show hitboxes
-`
+	screenWidth  = 640
+	screenHeight = 480
 
 	// startX is the initial x position of the falling gopher
 	startX = 200
@@ -39,6 +24,24 @@ Press x to show hitboxes
 
 	// imgWidth is the full width (including transparent) of the gopher image
 	imgWidth = 240
+
+	// welcomeMessage is intended to be used in DebugPrint function
+	welcomeMessage = `
+Press Enter to create a Gopher
+Press Escape to quit
+Use arrows (or hjkl) to move
+
+Press x to show hitboxes
+`
+)
+
+var (
+	img       *ebiten.Image
+	playerImg *ebiten.Image
+
+	redColor   = color.RGBA{0xff, 0, 0, 0xff}
+	blueColor  = color.RGBA{0, 0, 0xdd, 0xff}
+	greenColor = color.RGBA{0, 0xff, 0, 0xaa}
 )
 
 type Game struct {
@@ -50,6 +53,7 @@ type Game struct {
 	mousePressed bool
 
 	showHitboxes bool
+	isFullScreen bool
 }
 
 func (g *Game) Update() error {
@@ -80,6 +84,10 @@ func (g *Game) Update() error {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyX) {
 		g.showHitboxes = !g.showHitboxes
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyF11) {
+		g.isFullScreen = !g.isFullScreen
 	}
 
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
@@ -130,32 +138,35 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		screen.DrawImage(playerImg, op)
 	}
 
-	// draw falling gopher
-	if g.fallingY < bottomThreshold {
-		fallingOp := &ebiten.DrawImageOptions{}
-		fallingOp.GeoM.Translate(float64(g.fallingX), float64(g.fallingY))
-
-		if g.hit() {
-			if g.showHitboxes {
-				imgHB := ebiten.NewImageFromImage(img)
-				imgHB.Fill(greenColor)
-				screen.DrawImage(imgHB, fallingOp)
-			}
-		} else {
-			if g.showHitboxes {
-				imgHB := ebiten.NewImageFromImage(img)
-				imgHB.Fill(blueColor)
-				screen.DrawImage(imgHB, fallingOp)
-			}
-		}
-		screen.DrawImage(img, fallingOp)
-	}
+	g.drawFallingGopher(screen)
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("failed: %d", g.failedCount))
 }
 
-func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 640, 480
+func (g *Game) drawFallingGopher(screen *ebiten.Image) {
+	if g.fallingY < bottomThreshold {
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(float64(g.fallingX), float64(g.fallingY))
+
+		if g.showHitboxes {
+			imgHB := ebiten.NewImageFromImage(img)
+
+			if g.hit() {
+				imgHB.Fill(greenColor)
+			} else {
+				imgHB.Fill(blueColor)
+			}
+
+			screen.DrawImage(imgHB, op)
+		}
+
+		screen.DrawImage(img, op)
+	}
+}
+
+func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
+	ebiten.SetFullscreen(g.isFullScreen)
+	return screenWidth, screenHeight
 }
 
 func main() {
