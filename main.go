@@ -25,6 +25,8 @@ const (
 	// imgWidth is the full width (including transparent) of the gopher image
 	imgWidth = 240
 
+	canonWidth, canonHeight = 40, 20
+
 	// welcomeMessage is intended to be used in DebugPrint function
 	welcomeMessage = `
 Press Enter to create a Gopher
@@ -48,6 +50,8 @@ type Game struct {
 	fallingX, fallingY int
 	failedCount        int
 
+	canonY int
+
 	gopherCount  int
 	x, y         int
 	mousePressed bool
@@ -68,10 +72,12 @@ func (g *Game) Update() error {
 
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) || ebiten.IsKeyPressed(ebiten.KeyH) {
 		g.x -= 3
+		g.canonY -= 3
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyRight) || ebiten.IsKeyPressed(ebiten.KeyL) {
 		g.x += 3
+		g.canonY += 3
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyUp) || ebiten.IsKeyPressed(ebiten.KeyK) {
@@ -138,9 +144,20 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		screen.DrawImage(playerImg, op)
 	}
 
+	g.drawCanon(screen)
 	g.drawFallingGopher(screen)
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("failed: %d", g.failedCount))
+}
+
+func (g *Game) drawCanon(screen *ebiten.Image) {
+	img := ebiten.NewImage(canonWidth, canonHeight)
+	op := &ebiten.DrawImageOptions{}
+
+	op.GeoM.Translate(float64(g.canonY), bottomThreshold+120)
+
+	img.Fill(greenColor)
+	screen.DrawImage(img, op)
 }
 
 func (g *Game) drawFallingGopher(screen *ebiten.Image) {
@@ -184,7 +201,7 @@ func main() {
 
 	ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("Hello, Hitbox WoRlD!")
-	if err := ebiten.RunGame(&Game{fallingX: startX}); err != nil {
+	if err := ebiten.RunGame(&Game{fallingX: startX, canonY: (screenWidth - canonWidth) / 2}); err != nil {
 		log.Fatal(err)
 	}
 }
