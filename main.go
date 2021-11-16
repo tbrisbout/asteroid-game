@@ -7,6 +7,7 @@ import (
 	"image/color"
 	_ "image/png"
 	"log"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -30,6 +31,8 @@ const (
 	shotWidth, shotHeight   = 10, 100
 
 	canonY = screenHeight - canonHeight
+
+	nbFramesBeforeRespawn = 30
 
 	// welcomeMessage is intended to be used in DebugPrint function
 	welcomeMessage = `
@@ -75,6 +78,8 @@ type Game struct {
 
 	showHitboxes bool
 	isFullScreen bool
+
+	countBeforeRespawn int
 }
 
 func (g *Game) Update() error {
@@ -120,17 +125,33 @@ func (g *Game) Update() error {
 	}
 
 	if g.fallingY < bottomThreshold {
-		g.fallingY++
+		g.fallingY += (rand.Intn(1) + 1)
 	} else {
 		g.fallingY = 0
+		g.fallingX = rand.Intn(screenWidth - imgWidth/2)
+
 		g.failedCount++
+	}
+
+	// maybe use a goroutine for this
+	if g.countBeforeRespawn > 0 {
+		g.countBeforeRespawn++
+		g.fallingY = 0
+	}
+
+	if g.countBeforeRespawn >= nbFramesBeforeRespawn {
+		g.countBeforeRespawn = 0
 	}
 
 	if g.hit() {
 		g.fallingY = 0
+		g.fallingX = rand.Intn(screenWidth - imgWidth/2)
+
+		g.shotCount++
+
 		g.shootY = screenHeight
 		g.isShoot = false
-		g.shotCount++
+		g.countBeforeRespawn++
 	}
 
 	if g.failedCount >= 10 {
@@ -147,10 +168,11 @@ func overlap(a, b, wa, wb int) bool {
 }
 
 func (g *Game) hit() bool {
-	// return overlap(g.x, g.fallingX, imgWidth, imgWidth) && overlap(g.y, g.fallingY, imgWidth, imgWidth)
+	// hack to have a hit that feels more precise than the hitbox
+	gapToReachRealGopher := 50
 
 	shootRect := image.Rect(g.shootX, g.shootY, g.shootX+shotWidth, g.shootY+shotHeight)
-	fallingRect := image.Rect(g.fallingX, g.fallingY, g.fallingX+imgWidth, g.fallingY+imgWidth)
+	fallingRect := image.Rect(g.fallingX, g.fallingY, g.fallingX+imgWidth, g.fallingY+imgWidth-gapToReachRealGopher)
 	return fallingRect.Overlaps(shootRect)
 }
 
@@ -167,12 +189,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	g.drawCanon(screen)
 	if g.isShoot {
 		g.drawShoot(screen)
 	}
+	g.drawCanon(screen)
 
-	g.drawFallingGopher(screen)
+	if g.countBeforeRespawn == 0 {
+		g.drawFallingGopher(screen)
+	}
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("failed: %d\nshot: %d", g.failedCount, g.shotCount))
 }
