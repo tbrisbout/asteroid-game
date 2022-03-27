@@ -7,6 +7,7 @@ import (
 	"image/color"
 	_ "image/png"
 	"log"
+	"math"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -126,7 +127,7 @@ func (g *Game) Update() error {
 	}
 
 	if g.fallingY < bottomThreshold {
-		g.fallingY += (rand.Intn(1) + 2)
+		g.fallingY += int(math.Ceil(float64(g.shotCount)/3)) + 1
 	} else {
 		g.fallingY = 0
 		g.fallingX = rand.Intn(screenWidth - asteroidWidth/2)
