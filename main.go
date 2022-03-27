@@ -18,16 +18,14 @@ const (
 	screenWidth  = 640
 	screenHeight = 480
 
-	// startX is the initial x position of the falling gopher
+	// startX is the initial x position of the falling asteroid
 	startX = 200
 
 	// bottomThreshold is the line where image should disappear
 	bottomThreshold = 300
 
-	// imgWidth is the full width (including transparent) of the gopher image
-	imgWidth = 240
-
-	canonWidth, canonHeight = 40, 20
+	asteroidWidth           = 120
+	canonWidth, canonHeight = 48, 32
 	shotWidth, shotHeight   = 10, 100
 
 	canonY = screenHeight - canonHeight
@@ -36,7 +34,7 @@ const (
 
 	// welcomeMessage is intended to be used in DebugPrint function
 	welcomeMessage = `
-Press Enter to create a Gopher
+Press Enter to create an asteroid
 Press Escape to quit
 Use arrows (or hjkl) to move
 
@@ -56,7 +54,10 @@ const (
 )
 
 var (
-	img *ebiten.Image
+	spaceImg    *ebiten.Image
+	asteroidImg *ebiten.Image
+	canonImg    *ebiten.Image
+	shotImg     *ebiten.Image
 
 	redColor    = color.RGBA{0xff, 0, 0, 0xff}
 	blueColor   = color.RGBA{0, 0, 0xdd, 0xff}
@@ -115,9 +116,9 @@ func (g *Game) Update() error {
 		g.shootX = g.canonX - shotWidth/2 + canonWidth/2
 	}
 
+	// TODO prevent shooting if shoot in progress
 	if g.isShoot {
-		g.shootY -= 4
-
+		g.shootY -= 5
 		if g.shootY <= 0 {
 			g.isShoot = false
 			g.shootY = canonY
@@ -125,10 +126,10 @@ func (g *Game) Update() error {
 	}
 
 	if g.fallingY < bottomThreshold {
-		g.fallingY += (rand.Intn(1) + 1)
+		g.fallingY += (rand.Intn(1) + 2)
 	} else {
 		g.fallingY = 0
-		g.fallingX = rand.Intn(screenWidth - imgWidth/2)
+		g.fallingX = rand.Intn(screenWidth - asteroidWidth/2)
 
 		g.failedCount++
 	}
@@ -145,7 +146,7 @@ func (g *Game) Update() error {
 
 	if g.hit() {
 		g.fallingY = 0
-		g.fallingX = rand.Intn(screenWidth - imgWidth/2)
+		g.fallingX = rand.Intn(screenWidth - asteroidWidth/2)
 
 		g.shotCount++
 
@@ -169,10 +170,10 @@ func overlap(a, b, wa, wb int) bool {
 
 func (g *Game) hit() bool {
 	// hack to have a hit that feels more precise than the hitbox
-	gapToReachRealGopher := 50
+	gapToReachRealAsteroid := 10
 
 	shootRect := image.Rect(g.shootX, g.shootY, g.shootX+shotWidth, g.shootY+shotHeight)
-	fallingRect := image.Rect(g.fallingX, g.fallingY, g.fallingX+imgWidth, g.fallingY+imgWidth-gapToReachRealGopher)
+	fallingRect := image.Rect(g.fallingX, g.fallingY, g.fallingX+asteroidWidth, g.fallingY+asteroidWidth-gapToReachRealAsteroid)
 	return fallingRect.Overlaps(shootRect)
 }
 
@@ -189,45 +190,45 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		return
 	}
 
+	screen.DrawImage(spaceImg, nil)
 	if g.isShoot {
 		g.drawShoot(screen)
 	}
 	g.drawCanon(screen)
 
 	if g.countBeforeRespawn == 0 {
-		g.drawFallingGopher(screen)
+		g.drawAsteroid(screen)
 	}
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("failed: %d\nshot: %d", g.failedCount, g.shotCount))
 }
 
 func (g *Game) drawCanon(screen *ebiten.Image) {
-	img := ebiten.NewImage(canonWidth, canonHeight)
+	// img := ebiten.NewImage(canonWidth, canonHeight)
 	op := &ebiten.DrawImageOptions{}
 
 	op.GeoM.Translate(float64(g.canonX), canonY)
 
-	img.Fill(greenColor)
-	screen.DrawImage(img, op)
+	// img.Fill(greenColor)
+	screen.DrawImage(canonImg, op)
 }
 
 func (g *Game) drawShoot(screen *ebiten.Image) {
-	img := ebiten.NewImage(shotWidth, shotHeight)
+	// img := ebiten.NewImage(shotWidth, shotHeight)
 	op := &ebiten.DrawImageOptions{}
 
 	op.GeoM.Translate(float64(g.shootX), float64(g.shootY))
 
-	img.Fill(yellowColor)
-	screen.DrawImage(img, op)
+	// img.Fill(yellowColor)
+	screen.DrawImage(shotImg, op)
 }
 
-func (g *Game) drawFallingGopher(screen *ebiten.Image) {
+func (g *Game) drawAsteroid(screen *ebiten.Image) {
 	if g.fallingY < bottomThreshold {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(float64(g.fallingX), float64(g.fallingY))
-
 		if g.showHitboxes {
-			imgHB := ebiten.NewImageFromImage(img)
+			imgHB := ebiten.NewImageFromImage(asteroidImg)
 
 			if g.hit() {
 				imgHB.Fill(greenColor)
@@ -238,7 +239,7 @@ func (g *Game) drawFallingGopher(screen *ebiten.Image) {
 			screen.DrawImage(imgHB, op)
 		}
 
-		screen.DrawImage(img, op)
+		screen.DrawImage(asteroidImg, op)
 	}
 }
 
@@ -249,7 +250,12 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func main() {
 	var err error
-	img, _, err = ebitenutil.NewImageFromFile("gopher.png")
+
+	spaceImg, _, err = ebitenutil.NewImageFromFile("space.png")
+	asteroidImg, _, err = ebitenutil.NewImageFromFile("asteroid.png")
+	canonImg, _, err = ebitenutil.NewImageFromFile("canon.png")
+	shotImg, _, err = ebitenutil.NewImageFromFile("shot.png")
+
 	if err != nil {
 		log.Fatal(err)
 	}
