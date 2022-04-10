@@ -112,14 +112,13 @@ func (g *Game) Update() error {
 		g.isFullScreen = !g.isFullScreen
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+	if !g.isShoot && inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		g.isShoot = true
 		g.shootX = g.canonX - shotWidth/2 + canonWidth/2
 	}
 
-	// TODO prevent shooting if shoot in progress
 	if g.isShoot {
-		g.shootY -= 5
+		g.shootY -= 6
 		if g.shootY <= 0 {
 			g.isShoot = false
 			g.shootY = canonY
