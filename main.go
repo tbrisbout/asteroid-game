@@ -253,10 +253,10 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 func main() {
 	var err error
 
-	spaceImg, _, err = ebitenutil.NewImageFromFile("space.png")
-	asteroidImg, _, err = ebitenutil.NewImageFromFile("asteroid.png")
-	canonImg, _, err = ebitenutil.NewImageFromFile("canon.png")
-	shotImg, _, err = ebitenutil.NewImageFromFile("shot.png")
+	spaceImg, _, err = ebitenutil.NewImageFromFile("assets/space.png")
+	asteroidImg, _, err = ebitenutil.NewImageFromFile("assets/asteroid.png")
+	canonImg, _, err = ebitenutil.NewImageFromFile("assets/canon.png")
+	shotImg, _, err = ebitenutil.NewImageFromFile("assets/shot.png")
 
 	if err != nil {
 		log.Fatal(err)
