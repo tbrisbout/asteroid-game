@@ -35,9 +35,11 @@ const (
 
 	// welcomeMessage is intended to be used in DebugPrint function
 	welcomeMessage = `
-Press Enter to create an asteroid
 Press Escape to quit
+Press Enter to start
+
 Use arrows (or hjkl) to move
+Use space to shoot
 
 Press x to show hitboxes
 `
@@ -261,7 +263,7 @@ func main() {
 	}
 
 	ebiten.SetWindowSize(screenWidth, screenHeight)
-	ebiten.SetWindowTitle("Hello, Shoot WoRlD!")
+	ebiten.SetWindowTitle("asteroid-game")
 
 	game := &Game{
 		fallingX: startX,
